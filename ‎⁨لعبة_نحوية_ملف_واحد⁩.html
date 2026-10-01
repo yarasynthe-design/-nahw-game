@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>تحدي النحو</title>
+  <style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Tahoma, Arial, sans-serif;
+  background: linear-gradient(135deg, #eee8ff, #f8f5ff);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #29233d;
+}
+
+.game {
+  width: min(92%, 700px);
+  background: white;
+  border-radius: 24px;
+  padding: 32px;
+  box-shadow: 0 12px 35px rgba(60, 40, 100, .15);
+  text-align: center;
+}
+
+.screen {
+  display: none;
+}
+
+.screen.active {
+  display: block;
+}
+
+h1 {
+  font-size: 38px;
+  margin-bottom: 10px;
+}
+
+h2 {
+  line-height: 1.8;
+}
+
+p {
+  font-size: 18px;
+  line-height: 1.8;
+}
+
+button {
+  border: 0;
+  border-radius: 14px;
+  padding: 15px 22px;
+  font-size: 17px;
+  font-family: inherit;
+  cursor: pointer;
+  background: #7357c7;
+  color: white;
+  transition: .2s;
+}
+
+button:hover {
+  transform: translateY(-2px);
+}
+
+.levels {
+  display: grid;
+  gap: 14px;
+  margin: 25px 0;
+}
+
+.level-btn {
+  background: #f0ecff;
+  color: #33285b;
+  border: 2px solid #ddd4ff;
+}
+
+.top {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 15px;
+  font-size: 17px;
+}
+
+.progress {
+  height: 8px;
+  background: #e9e5ef;
+  border-radius: 20px;
+  overflow: hidden;
+  margin-bottom: 25px;
+}
+
+.progress::before {
+  content: "";
+  display: block;
+  height: 100%;
+  width: var(--progress, 0%);
+  background: #7357c7;
+  transition: .3s;
+}
+
+#answers {
+  display: grid;
+  gap: 12px;
+  margin: 25px 0;
+}
+
+.answer {
+  background: #f7f5fa;
+  color: #29233d;
+  border: 2px solid #e2deea;
+}
+
+.answer.correct {
+  background: #dff5e6;
+  border-color: #55a96b;
+}
+
+.answer.wrong {
+  background: #ffe1e1;
+  border-color: #d65b5b;
+}
+
+#feedback {
+  min-height: 35px;
+  font-weight: bold;
+  font-size: 18px;
+}
+
+.next {
+  margin-top: 8px;
+}
+
+.hidden {
+  display: none;
+}
+
+.score {
+  font-weight: bold;
+}
+
+small {
+  opacity: .7;
+}
+
+</style>
+</head>
+<body>
+  <main class="game">
+    <section id="startScreen" class="screen active">
+      <h1>🎓 تحدي النحو</h1>
+      <p>اختبري مهاراتك النحوية عبر ثلاثة مستويات!</p>
+      <button id="startBtn">ابدئي اللعبة</button>
+    </section>
+
+    <section id="levelScreen" class="screen">
+      <h2>اختاري المستوى</h2>
+      <div class="levels">
+        <button class="level-btn" data-level="basic">🟢 تأسيسي<br><small>1 نقطة للسؤال</small></button>
+        <button class="level-btn" data-level="applied">🟡 تطبيقي<br><small>2 نقطتان للسؤال</small></button>
+        <button class="level-btn" data-level="challenge">🔴 تحدي<br><small>3 نقاط للسؤال</small></button>
+      </div>
+      <p class="score">النقاط: <span id="levelScore">0</span></p>
+    </section>
+
+    <section id="quizScreen" class="screen">
+      <div class="top">
+        <span id="levelName"></span>
+        <span>النقاط: <b id="score">0</b></span>
+      </div>
+      <div class="progress" id="progress"></div>
+      <h2 id="question"></h2>
+      <div id="answers"></div>
+      <div id="feedback"></div>
+      <button id="nextBtn" class="next hidden">السؤال التالي ←</button>
+    </section>
+
+    <section id="resultScreen" class="screen">
+      <h1>🎉 انتهى المستوى!</h1>
+      <p id="resultText"></p>
+      <button id="backBtn">العودة لاختيار مستوى</button>
+    </section>
+  </main>
+
+  <script>
+const questions = {
+  basic: [
+    {
+      q: "حددي المبتدأ في الجملة: «السماءُ صافيةٌ».",
+      a: ["السماءُ", "صافيةٌ", "السماءُ صافيةٌ", "لا يوجد"],
+      correct: 0,
+      explanation: "السماءُ هي المبتدأ، وهي مرفوعة."
+    },
+    {
+      q: "ما خبر الجملة: «الطالبُ مجتهدٌ»؟",
+      a: ["الطالبُ", "مجتهدٌ", "الطالب", "مجتهد"],
+      correct: 1,
+      explanation: "مجتهدٌ هو الخبر، وهو مرفوع."
+    },
+    {
+      q: "في «كان الجوُّ معتدلًا»، ما اسم كان؟",
+      a: ["كان", "الجوُّ", "معتدلًا", "الجملة كاملة"],
+      correct: 1,
+      explanation: "الجوُّ اسم كان، وهو مرفوع."
+    },
+    {
+      q: "في «إنَّ العلمَ نورٌ»، ما اسم إنَّ؟",
+      a: ["إنَّ", "العلمَ", "نورٌ", "لا يوجد"],
+      correct: 1,
+      explanation: "العلمَ اسم إنَّ، وهو منصوب."
+    },
+    {
+      q: "حددي نائب الفاعل في «كُتِبَ الدرسُ».",
+      a: ["كُتِبَ", "الدرسُ", "لا يوجد", "كُتِبَ الدرسُ"],
+      correct: 1,
+      explanation: "الدرسُ نائب فاعل مرفوع."
+    }
+  ],
+
+  applied: [
+    {
+      q: "أدخلي «كان» على: «الجوُّ جميلٌ».",
+      a: ["كان الجوُّ جميلًا.", "كان الجوَّ جميلٌ.", "كان الجوُّ جميلٌ.", "كان الجوَّ جميلًا."],
+      correct: 0,
+      explanation: "اسم كان مرفوع، وخبرها منصوب."
+    },
+    {
+      q: "أدخلي «إنَّ» على: «العلمُ مفيدٌ».",
+      a: ["إنَّ العلمَ مفيدٌ.", "إنَّ العلمُ مفيدًا.", "إنَّ العلمَ مفيدًا.", "إنَّ العلمُ مفيدٌ."],
+      correct: 0,
+      explanation: "اسم إنَّ منصوب وخبرها مرفوع."
+    },
+    {
+      q: "صححي الجملة: «إنَّ الطالبُ مجتهدٌ».",
+      a: ["إنَّ الطالبَ مجتهدٌ.", "إنَّ الطالبُ مجتهدًا.", "إنَّ الطالبَ مجتهدًا.", "إنَّ الطالبُ مجتهدٌ."],
+      correct: 0,
+      explanation: "الطالبَ اسم إنَّ منصوب."
+    },
+    {
+      q: "صححي الجملة: «كان المعلمَ حاضرًا».",
+      a: ["كان المعلمُ حاضرًا.", "كان المعلمَ حاضرٌ.", "كان المعلمُ حاضرٌ.", "كان المعلمَ حاضرًا."],
+      correct: 0,
+      explanation: "المعلمُ اسم كان مرفوع."
+    },
+    {
+      q: "حوّلي «كتبَ الطالبُ الدرسَ» إلى المبني للمجهول.",
+      a: ["كُتِبَ الدرسُ.", "كُتِبَ الطالبُ.", "كَتَبَ الدرسُ.", "كُتِبَ الدرسَ."],
+      correct: 0,
+      explanation: "عند البناء للمجهول يصبح المفعول به نائب فاعل مرفوعًا."
+    }
+  ],
+
+  challenge: [
+    {
+      q: "في «إنَّ الطالبَ المجتهدَ محبوبٌ»، ما خبر إنَّ؟",
+      a: ["إنَّ", "الطالبَ", "المجتهدَ", "محبوبٌ"],
+      correct: 3,
+      explanation: "محبوبٌ خبر إنَّ مرفوع."
+    },
+    {
+      q: "في «كانَ الطالبُ مجتهدًا»، ما إعراب «مجتهدًا»؟",
+      a: ["مبتدأ مرفوع", "خبر كان منصوب", "اسم كان مرفوع", "نائب فاعل"],
+      correct: 1,
+      explanation: "مجتهدًا خبر كان منصوب."
+    },
+    {
+      q: "أي جملة تحتوي على نائب فاعل؟",
+      a: ["كتبَ الطالبُ الدرسَ.", "كُتِبَ الدرسُ.", "الطالبُ مجتهدٌ.", "إنَّ الدرسَ سهلٌ."],
+      correct: 1,
+      explanation: "الدرسُ نائب فاعل في الجملة المبنية للمجهول."
+    },
+    {
+      q: "ما التغيير الصحيح عند إدخال «أصبح» على «الطريقُ مزدحمٌ»؟",
+      a: ["أصبح الطريقُ مزدحمًا.", "أصبح الطريقَ مزدحمٌ.", "أصبح الطريقَ مزدحمًا.", "أصبح الطريقُ مزدحمٌ."],
+      correct: 0,
+      explanation: "الطريقُ اسم أصبح مرفوع، ومزدحمًا خبرها منصوب."
+    },
+    {
+      q: "حددي العبارة الصحيحة نحويًا:",
+      a: ["إنَّ الطالبُ مجتهدًا.", "كان الطالبَ مجتهدٌ.", "إنَّ الطالبَ مجتهدٌ.", "كان الطالبَ مجتهدًا."],
+      correct: 2,
+      explanation: "إنَّ تنصب الاسم وترفع الخبر."
+    }
+  ]
+};
+
+const levelNames = {
+  basic: "🟢 المستوى التأسيسي",
+  applied: "🟡 المستوى التطبيقي",
+  challenge: "🔴 مستوى التحدي"
+};
+
+let currentLevel = "";
+let currentQuestion = 0;
+let score = 0;
+let levelPoints = 1;
+
+const screens = document.querySelectorAll(".screen");
+const startBtn = document.getElementById("startBtn");
+const levelButtons = document.querySelectorAll(".level-btn");
+const questionEl = document.getElementById("question");
+const answersEl = document.getElementById("answers");
+const feedbackEl = document.getElementById("feedback");
+const nextBtn = document.getElementById("nextBtn");
+const scoreEl = document.getElementById("score");
+const levelScoreEl = document.getElementById("levelScore");
+const levelNameEl = document.getElementById("levelName");
+const progressEl = document.getElementById("progress");
+const resultText = document.getElementById("resultText");
+const backBtn = document.getElementById("backBtn");
+
+function showScreen(id) {
+  screens.forEach(s => s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+}
+
+startBtn.addEventListener("click", () => showScreen("levelScreen"));
+
+levelButtons.forEach(btn => {
+  btn.addEventListener("click", () => {
+    currentLevel = btn.dataset.level;
+    currentQuestion = 0;
+    score = 0;
+    levelPoints = currentLevel === "basic" ? 1 : currentLevel === "applied" ? 2 : 3;
+    scoreEl.textContent = score;
+    levelNameEl.textContent = levelNames[currentLevel];
+    showScreen("quizScreen");
+    loadQuestion();
+  });
+});
+
+function loadQuestion() {
+  const list = questions[currentLevel];
+  const item = list[currentQuestion];
+
+  questionEl.textContent = item.q;
+  answersEl.innerHTML = "";
+  feedbackEl.textContent = "";
+  nextBtn.classList.add("hidden");
+
+  const percent = (currentQuestion / list.length) * 100;
+  progressEl.style.setProperty("--progress", percent + "%");
+
+  item.a.forEach((answer, index) => {
+    const button = document.createElement("button");
+    button.className = "answer";
+    button.textContent = answer;
+    button.addEventListener("click", () => checkAnswer(button, index, item));
+    answersEl.appendChild(button);
+  });
+}
+
+function checkAnswer(button, selected, item) {
+  const buttons = document.querySelectorAll(".answer");
+  buttons.forEach(b => b.disabled = true);
+
+  if (selected === item.correct) {
+    button.classList.add("correct");
+    feedbackEl.textContent = "✅ إجابة صحيحة! +" + levelPoints + " نقطة";
+    score += levelPoints;
+    scoreEl.textContent = score;
+  } else {
+    button.classList.add("wrong");
+    buttons[item.correct].classList.add("correct");
+    feedbackEl.textContent = "❌ إجابة غير صحيحة. " + item.explanation;
+  }
+
+  nextBtn.classList.remove("hidden");
+}
+
+nextBtn.addEventListener("click", () => {
+  currentQuestion++;
+  if (currentQuestion >= questions[currentLevel].length) {
+    showResult();
+  } else {
+    loadQuestion();
+  }
+});
+
+function showResult() {
+  const max = questions[currentLevel].length * levelPoints;
+  resultText.innerHTML = `حصلتِ على <strong>${score}</strong> من <strong>${max}</strong> نقطة.<br><br>` +
+    (score === max ? "🏆 ممتاز! أتقنتِ المستوى!" : "👏 أحسنتِ! حاولي مرة أخرى لرفع نقاطك.");
+  showScreen("resultScreen");
+}
+
+backBtn.addEventListener("click", () => {
+  levelScoreEl.textContent = score;
+  showScreen("levelScreen");
+});
+
+</script>
+</body>
+</html>
