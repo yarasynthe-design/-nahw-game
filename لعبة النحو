@@ -1,1 +1,1506 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>تحدي النحو</title>
 
+  <style>
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Tahoma, Arial, sans-serif;
+  background: linear-gradient(135deg, #eee8ff, #f8f5ff);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #29233d;
+}
+
+.game {
+  width: min(92%, 700px);
+  background: white;
+  border-radius: 24px;
+  padding: 32px;
+  box-shadow: 0 12px 35px rgba(60, 40, 100, .15);
+  text-align: center;
+}
+
+.screen {
+  display: none;
+}
+
+.screen.active {
+  display: block;
+}
+
+h1 {
+  font-size: 38px;
+  margin-bottom: 10px;
+}
+
+h2 {
+  line-height: 1.8;
+}
+
+p {
+  font-size: 18px;
+  line-height: 1.8;
+}
+
+button {
+  border: 0;
+  border-radius: 14px;
+  padding: 15px 22px;
+  font-size: 17px;
+  font-family: inherit;
+  cursor: pointer;
+  background: #7357c7;
+  color: white;
+  transition: .2s;
+}
+
+button:hover {
+  transform: translateY(-2px);
+}
+
+button:disabled {
+  cursor: default;
+}
+
+.levels {
+  display: grid;
+  gap: 14px;
+  margin: 25px 0;
+}
+
+.level-btn {
+  background: #f0ecff;
+  color: #33285b;
+  border: 2px solid #ddd4ff;
+}
+
+.top {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 15px;
+  font-size: 17px;
+}
+
+.student-display {
+  background: #f5f1ff;
+  border-radius: 14px;
+  padding: 12px;
+  margin-bottom: 18px;
+  font-size: 16px;
+  line-height: 2;
+}
+
+.student-form {
+  margin: 25px 0;
+  text-align: right;
+}
+
+.student-form label {
+  display: block;
+  margin: 15px 0 7px;
+  font-weight: bold;
+}
+
+.student-form input {
+  width: 100%;
+  padding: 14px;
+  border: 2px solid #ddd4ff;
+  border-radius: 12px;
+  font-size: 16px;
+  font-family: inherit;
+  outline: none;
+}
+
+.student-form input:focus {
+  border-color: #7357c7;
+}
+
+.student-form button {
+  display: block;
+  margin: 25px auto 0;
+}
+
+.progress {
+  height: 8px;
+  background: #e9e5ef;
+  border-radius: 20px;
+  overflow: hidden;
+  margin-bottom: 25px;
+}
+
+.progress::before {
+  content: "";
+  display: block;
+  height: 100%;
+  width: var(--progress, 0%);
+  background: #7357c7;
+  transition: .3s;
+}
+
+#answers {
+  display: grid;
+  gap: 12px;
+  margin: 25px 0;
+}
+
+.answer {
+  background: #f7f5fa;
+  color: #29233d;
+  border: 2px solid #e2deea;
+}
+
+.answer.correct {
+  background: #dff5e6;
+  border-color: #55a96b;
+}
+
+.answer.wrong {
+  background: #ffe1e1;
+  border-color: #d65b5b;
+}
+
+#feedback {
+  min-height: 35px;
+  font-weight: bold;
+  font-size: 18px;
+}
+
+.next {
+  margin-top: 8px;
+}
+
+.hidden {
+  display: none;
+}
+
+.score {
+  font-weight: bold;
+}
+
+small {
+  opacity: .7;
+}
+
+
+/* =========================
+   الشهادة
+========================= */
+
+.certificate {
+  margin: 20px auto;
+  padding: 10px;
+}
+
+.certificate-border {
+  border: 8px double #7357c7;
+  border-radius: 20px;
+  padding: 35px 25px;
+  background: linear-gradient(135deg, #fff, #f8f5ff);
+  box-shadow: 0 8px 25px rgba(60, 40, 100, .12);
+}
+
+.certificate-icon {
+  font-size: 55px;
+  margin-bottom: 5px;
+}
+
+.certificate-border h1 {
+  color: #7357c7;
+  margin: 5px 0 10px;
+}
+
+.certificate-subtitle {
+  margin-bottom: 5px;
+}
+
+#certificateStudentName {
+  color: #33285b;
+  font-size: 28px;
+  margin: 10px 0;
+}
+
+.certificate-line {
+  width: 70%;
+  height: 2px;
+  background: #ddd4ff;
+  margin: 20px auto;
+}
+
+#certificateTitle {
+  color: #7357c7;
+  font-size: 22px;
+}
+
+#certificateLevel {
+  font-weight: bold;
+}
+
+#certificateScore {
+  font-size: 19px;
+  font-weight: bold;
+}
+
+.certificate-message {
+  font-size: 16px;
+  line-height: 2;
+}
+
+.certificate-footer {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 30px;
+  font-size: 14px;
+  opacity: .7;
+}
+
+.certificate-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+
+
+/* عند طباعة الشهادة */
+
+@media print {
+
+  body {
+    background: white;
+  }
+
+  .game {
+    width: 100%;
+    box-shadow: none;
+    padding: 0;
+  }
+
+  .screen {
+    display: none !important;
+  }
+
+  #certificateScreen {
+    display: block !important;
+  }
+
+  .certificate {
+    margin: 0;
+  }
+
+  .certificate-border {
+    box-shadow: none;
+    min-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .certificate-buttons {
+    display: none;
+  }
+
+}
+
+  </style>
+</head>
+
+
+<body>
+
+<main class="game">
+
+
+  <!-- =========================
+       الصفحة الأولى
+  ========================== -->
+
+  <section id="startScreen" class="screen active">
+
+    <h1>🎓 تحدي النحو</h1>
+
+    <p>
+      اختبري مهاراتك النحوية عبر ثلاثة مستويات!
+    </p>
+
+    <button id="startBtn">
+      ابدئي اللعبة
+    </button>
+
+  </section>
+
+
+
+  <!-- =========================
+       بيانات الطالبة
+  ========================== -->
+
+  <section id="studentScreen" class="screen">
+
+    <h2>📝 بيانات الطالبة</h2>
+
+    <p>
+      يرجى كتابة اسم الطالبة والصف قبل بدء الاختبار.
+    </p>
+
+
+    <div class="student-form">
+
+      <label for="studentName">
+        اسم الطالبة:
+      </label>
+
+      <input
+        type="text"
+        id="studentName"
+        placeholder="اكتبي اسم الطالبة"
+      >
+
+
+      <label for="studentClass">
+        الصف:
+      </label>
+
+      <input
+        type="text"
+        id="studentClass"
+        placeholder="مثال: 1/1"
+      >
+
+
+      <button id="continueBtn">
+        متابعة ←
+      </button>
+
+    </div>
+
+  </section>
+
+
+
+  <!-- =========================
+       اختيار المستوى
+  ========================== -->
+
+  <section id="levelScreen" class="screen">
+
+    <h2>
+      اختاري المستوى
+    </h2>
+
+
+    <div class="levels">
+
+      <button
+        class="level-btn"
+        data-level="basic"
+      >
+        🟢 تأسيسي
+        <br>
+        <small>
+          1 نقطة للسؤال
+        </small>
+      </button>
+
+
+      <button
+        class="level-btn"
+        data-level="applied"
+      >
+        🟡 تطبيقي
+        <br>
+        <small>
+          2 نقطتان للسؤال
+        </small>
+      </button>
+
+
+      <button
+        class="level-btn"
+        data-level="challenge"
+      >
+        🔴 تحدي
+        <br>
+        <small>
+          3 نقاط للسؤال
+        </small>
+      </button>
+
+    </div>
+
+
+    <p class="score">
+      النقاط:
+      <span id="levelScore">
+        0
+      </span>
+    </p>
+
+  </section>
+
+
+
+  <!-- =========================
+       الاختبار
+  ========================== -->
+
+  <section id="quizScreen" class="screen">
+
+
+    <div class="student-display">
+
+      👩‍🎓
+      <strong id="quizStudentName"></strong>
+
+      <br>
+
+      🏫 الصف:
+      <strong id="quizStudentClass"></strong>
+
+    </div>
+
+
+    <div class="top">
+
+      <span id="levelName"></span>
+
+      <span>
+        النقاط:
+        <b id="score">
+          0
+        </b>
+      </span>
+
+    </div>
+
+
+    <div
+      class="progress"
+      id="progress"
+    ></div>
+
+
+    <h2 id="question"></h2>
+
+
+    <div id="answers"></div>
+
+
+    <div id="feedback"></div>
+
+
+    <button
+      id="nextBtn"
+      class="next hidden"
+    >
+      السؤال التالي ←
+    </button>
+
+  </section>
+
+
+
+  <!-- =========================
+       الشهادة
+  ========================== -->
+
+  <section
+    id="certificateScreen"
+    class="screen"
+  >
+
+    <div class="certificate">
+
+      <div class="certificate-border">
+
+
+        <div class="certificate-icon">
+          🏆
+        </div>
+
+
+        <h1>
+          شهادة تقدير
+        </h1>
+
+
+        <p class="certificate-subtitle">
+          تُمنح هذه الشهادة للطالبة
+        </p>
+
+
+        <h2 id="certificateStudentName">
+          اسم الطالبة
+        </h2>
+
+
+        <p>
+          الصف:
+          <strong id="certificateStudentClass"></strong>
+        </p>
+
+
+        <div class="certificate-line"></div>
+
+
+        <h2 id="certificateTitle">
+          شهادة إتقان أساسيات النحو
+        </h2>
+
+
+        <p id="certificateLevel"></p>
+
+
+        <p id="certificateScore"></p>
+
+
+        <p class="certificate-message">
+
+          تقديرًا لجهودها ومشاركتها المتميزة
+          في تحدي النحو
+
+          <br>
+
+          مع تمنياتنا لها بدوام النجاح والتفوق 🌷
+
+        </p>
+
+
+        <div class="certificate-footer">
+
+          <span>
+            تحدي النحو
+          </span>
+
+          <span>
+            2026
+          </span>
+
+        </div>
+
+
+      </div>
+
+    </div>
+
+
+    <div class="certificate-buttons">
+
+      <button id="printCertificateBtn">
+        🖨️ طباعة الشهادة
+      </button>
+
+
+      <button id="certificateBackBtn">
+        ↩️ العودة لاختيار مستوى
+      </button>
+
+    </div>
+
+  </section>
+
+
+</main>
+
+
+
+<script>
+
+
+/* =========================
+   الأسئلة
+========================= */
+
+const questions = {
+
+
+  basic: [
+
+    {
+      q: "حددي المبتدأ في الجملة: «السماءُ صافيةٌ».",
+
+      a: [
+        "السماءُ",
+        "صافيةٌ",
+        "السماءُ صافيةٌ",
+        "لا يوجد"
+      ],
+
+      correct: 0,
+
+      explanation:
+        "السماءُ هي المبتدأ، وهي مرفوعة."
+    },
+
+
+    {
+      q: "ما خبر الجملة: «الطالبُ مجتهدٌ»؟",
+
+      a: [
+        "الطالبُ",
+        "مجتهدٌ",
+        "الطالب",
+        "مجتهد"
+      ],
+
+      correct: 1,
+
+      explanation:
+        "مجتهدٌ هو الخبر، وهو مرفوع."
+    },
+
+
+    {
+      q: "في «كان الجوُّ معتدلًا»، ما اسم كان؟",
+
+      a: [
+        "كان",
+        "الجوُّ",
+        "معتدلًا",
+        "الجملة كاملة"
+      ],
+
+      correct: 1,
+
+      explanation:
+        "الجوُّ اسم كان، وهو مرفوع."
+    },
+
+
+    {
+      q: "في «إنَّ العلمَ نورٌ»، ما اسم إنَّ؟",
+
+      a: [
+        "إنَّ",
+        "العلمَ",
+        "نورٌ",
+        "لا يوجد"
+      ],
+
+      correct: 1,
+
+      explanation:
+        "العلمَ اسم إنَّ، وهو منصوب."
+    },
+
+
+    {
+      q: "حددي نائب الفاعل في «كُتِبَ الدرسُ».",
+
+      a: [
+        "كُتِبَ",
+        "الدرسُ",
+        "لا يوجد",
+        "كُتِبَ الدرسُ"
+      ],
+
+      correct: 1,
+
+      explanation:
+        "الدرسُ نائب فاعل مرفوع."
+    }
+
+  ],
+
+
+
+  applied: [
+
+    {
+      q: "أدخلي «كان» على: «الجوُّ جميلٌ».",
+
+      a: [
+        "كان الجوُّ جميلًا.",
+        "كان الجوَّ جميلٌ.",
+        "كان الجوُّ جميلٌ.",
+        "كان الجوَّ جميلًا."
+      ],
+
+      correct: 0,
+
+      explanation:
+        "اسم كان مرفوع، وخبرها منصوب."
+    },
+
+
+    {
+      q: "أدخلي «إنَّ» على: «العلمُ مفيدٌ».",
+
+      a: [
+        "إنَّ العلمَ مفيدٌ.",
+        "إنَّ العلمُ مفيدًا.",
+        "إنَّ العلمَ مفيدًا.",
+        "إنَّ العلمُ مفيدٌ."
+      ],
+
+      correct: 0,
+
+      explanation:
+        "اسم إنَّ منصوب وخبرها مرفوع."
+    },
+
+
+    {
+      q: "صححي الجملة: «إنَّ الطالبُ مجتهدٌ».",
+
+      a: [
+        "إنَّ الطالبَ مجتهدٌ.",
+        "إنَّ الطالبُ مجتهدًا.",
+        "إنَّ الطالبَ مجتهدًا.",
+        "إنَّ الطالبُ مجتهدٌ."
+      ],
+
+      correct: 0,
+
+      explanation:
+        "الطالبَ اسم إنَّ منصوب."
+    },
+
+
+    {
+      q: "صححي الجملة: «كان المعلمَ حاضرًا».",
+
+      a: [
+        "كان المعلمُ حاضرًا.",
+        "كان المعلمَ حاضرٌ.",
+        "كان المعلمُ حاضرٌ.",
+        "كان المعلمَ حاضرًا."
+      ],
+
+      correct: 0,
+
+      explanation:
+        "المعلمُ اسم كان مرفوع."
+    },
+
+
+    {
+      q: "حوّلي «كتبَ الطالبُ الدرسَ» إلى المبني للمجهول.",
+
+      a: [
+        "كُتِبَ الدرسُ.",
+        "كُتِبَ الطالبُ.",
+        "كَتَبَ الدرسُ.",
+        "كُتِبَ الدرسَ."
+      ],
+
+      correct: 0,
+
+      explanation:
+        "عند البناء للمجهول يصبح المفعول به نائب فاعل مرفوعًا."
+    }
+
+  ],
+
+
+
+  challenge: [
+
+    {
+      q: "في «إنَّ الطالبَ المجتهدَ محبوبٌ»، ما خبر إنَّ؟",
+
+      a: [
+        "إنَّ",
+        "الطالبَ",
+        "المجتهدَ",
+        "محبوبٌ"
+      ],
+
+      correct: 3,
+
+      explanation:
+        "محبوبٌ خبر إنَّ مرفوع."
+    },
+
+
+    {
+      q: "في «كانَ الطالبُ مجتهدًا»، ما إعراب «مجتهدًا»؟",
+
+      a: [
+        "مبتدأ مرفوع",
+        "خبر كان منصوب",
+        "اسم كان مرفوع",
+        "نائب فاعل"
+      ],
+
+      correct: 1,
+
+      explanation:
+        "مجتهدًا خبر كان منصوب."
+    },
+
+
+    {
+      q: "أي جملة تحتوي على نائب فاعل؟",
+
+      a: [
+        "كتبَ الطالبُ الدرسَ.",
+        "كُتِبَ الدرسُ.",
+        "الطالبُ مجتهدٌ.",
+        "إنَّ الدرسَ سهلٌ."
+      ],
+
+      correct: 1,
+
+      explanation:
+        "الدرسُ نائب فاعل في الجملة المبنية للمجهول."
+    },
+
+
+    {
+      q: "ما التغيير الصحيح عند إدخال «أصبح» على «الطريقُ مزدحمٌ»؟",
+
+      a: [
+        "أصبح الطريقُ مزدحمًا.",
+        "أصبح الطريقَ مزدحمٌ.",
+        "أصبح الطريقَ مزدحمًا.",
+        "أصبح الطريقُ مزدحمٌ."
+      ],
+
+      correct: 0,
+
+      explanation:
+        "الطريقُ اسم أصبح مرفوع، ومزدحمًا خبرها منصوب."
+    },
+
+
+    {
+      q: "حددي العبارة الصحيحة نحويًا:",
+
+      a: [
+        "إنَّ الطالبُ مجتهدًا.",
+        "كان الطالبَ مجتهدٌ.",
+        "إنَّ الطالبَ مجتهدٌ.",
+        "كان الطالبَ مجتهدًا."
+      ],
+
+      correct: 2,
+
+      explanation:
+        "إنَّ تنصب الاسم وترفع الخبر."
+    }
+
+  ]
+
+};
+
+
+
+/* =========================
+   أسماء المستويات
+========================= */
+
+const levelNames = {
+
+  basic:
+    "🟢 المستوى التأسيسي",
+
+  applied:
+    "🟡 المستوى التطبيقي",
+
+  challenge:
+    "🔴 مستوى التحدي"
+
+};
+
+
+
+/* =========================
+   أسماء الشهادات
+========================= */
+
+const certificateTitles = {
+
+  basic:
+    "شهادة إتقان أساسيات النحو",
+
+  applied:
+    "شهادة التميز في تطبيقات النحو",
+
+  challenge:
+    "شهادة التميز النحوي المتقدم"
+
+};
+
+
+const certificateNames = {
+
+  basic:
+    "🏆 المستوى التأسيسي",
+
+  applied:
+    "🌟 المستوى التطبيقي",
+
+  challenge:
+    "👑 مستوى التحدي"
+
+};
+
+
+
+/* =========================
+   المتغيرات
+========================= */
+
+let currentLevel = "";
+
+let currentQuestion = 0;
+
+let score = 0;
+
+let levelPoints = 1;
+
+
+/* بيانات الطالبة */
+
+let studentName = "";
+
+let studentClass = "";
+
+
+
+/* =========================
+   عناصر الصفحة
+========================= */
+
+const screens =
+  document.querySelectorAll(".screen");
+
+
+const startBtn =
+  document.getElementById("startBtn");
+
+
+const continueBtn =
+  document.getElementById("continueBtn");
+
+
+const levelButtons =
+  document.querySelectorAll(".level-btn");
+
+
+const questionEl =
+  document.getElementById("question");
+
+
+const answersEl =
+  document.getElementById("answers");
+
+
+const feedbackEl =
+  document.getElementById("feedback");
+
+
+const nextBtn =
+  document.getElementById("nextBtn");
+
+
+const scoreEl =
+  document.getElementById("score");
+
+
+const levelScoreEl =
+  document.getElementById("levelScore");
+
+
+const levelNameEl =
+  document.getElementById("levelName");
+
+
+const progressEl =
+  document.getElementById("progress");
+
+
+/* بيانات الشهادة */
+
+const certificateStudentName =
+  document.getElementById(
+    "certificateStudentName"
+  );
+
+
+const certificateStudentClass =
+  document.getElementById(
+    "certificateStudentClass"
+  );
+
+
+const certificateTitle =
+  document.getElementById(
+    "certificateTitle"
+  );
+
+
+const certificateLevel =
+  document.getElementById(
+    "certificateLevel"
+  );
+
+
+const certificateScore =
+  document.getElementById(
+    "certificateScore"
+  );
+
+
+const printCertificateBtn =
+  document.getElementById(
+    "printCertificateBtn"
+  );
+
+
+const certificateBackBtn =
+  document.getElementById(
+    "certificateBackBtn"
+  );
+
+
+
+/* =========================
+   الانتقال بين الصفحات
+========================= */
+
+function showScreen(id) {
+
+  screens.forEach(s => {
+
+    s.classList.remove("active");
+
+  });
+
+
+  document
+    .getElementById(id)
+    .classList.add("active");
+
+}
+
+
+
+/* =========================
+   ابدئي اللعبة
+========================= */
+
+startBtn.addEventListener(
+  "click",
+  () => {
+
+    showScreen("studentScreen");
+
+  }
+);
+
+
+
+/* =========================
+   بيانات الطالبة
+========================= */
+
+continueBtn.addEventListener(
+  "click",
+  () => {
+
+
+    studentName =
+      document
+        .getElementById("studentName")
+        .value
+        .trim();
+
+
+    studentClass =
+      document
+        .getElementById("studentClass")
+        .value
+        .trim();
+
+
+    if (
+      studentName === "" ||
+      studentClass === ""
+    ) {
+
+      alert(
+        "فضلاً اكتبي اسم الطالبة والصف أولاً."
+      );
+
+      return;
+
+    }
+
+
+    /* عرض الاسم والصف أثناء الاختبار */
+
+    document
+      .getElementById("quizStudentName")
+      .textContent = studentName;
+
+
+    document
+      .getElementById("quizStudentClass")
+      .textContent = studentClass;
+
+
+    /* عرض الاسم والصف في الشهادة */
+
+    certificateStudentName
+      .textContent = studentName;
+
+
+    certificateStudentClass
+      .textContent = studentClass;
+
+
+    showScreen("levelScreen");
+
+  }
+);
+
+
+
+/* =========================
+   اختيار المستوى
+========================= */
+
+levelButtons.forEach(btn => {
+
+  btn.addEventListener(
+    "click",
+    () => {
+
+
+      currentLevel =
+        btn.dataset.level;
+
+
+      currentQuestion = 0;
+
+      score = 0;
+
+
+      levelPoints =
+        currentLevel === "basic"
+          ? 1
+          : currentLevel === "applied"
+          ? 2
+          : 3;
+
+
+      scoreEl.textContent =
+        score;
+
+
+      levelNameEl.textContent =
+        levelNames[currentLevel];
+
+
+      showScreen("quizScreen");
+
+
+      loadQuestion();
+
+    }
+  );
+
+});
+
+
+
+/* =========================
+   تحميل السؤال
+========================= */
+
+function loadQuestion() {
+
+  const list =
+    questions[currentLevel];
+
+
+  const item =
+    list[currentQuestion];
+
+
+  questionEl.textContent =
+    item.q;
+
+
+  answersEl.innerHTML = "";
+
+
+  feedbackEl.textContent = "";
+
+
+  nextBtn.classList.add(
+    "hidden"
+  );
+
+
+  const percent =
+    (currentQuestion / list.length) * 100;
+
+
+  progressEl.style.setProperty(
+    "--progress",
+    percent + "%"
+  );
+
+
+  item.a.forEach(
+    (answer, index) => {
+
+
+      const button =
+        document.createElement(
+          "button"
+        );
+
+
+      button.className =
+        "answer";
+
+
+      button.textContent =
+        answer;
+
+
+      button.addEventListener(
+        "click",
+        () =>
+          checkAnswer(
+            button,
+            index,
+            item
+          )
+      );
+
+
+      answersEl.appendChild(
+        button
+      );
+
+    }
+  );
+
+}
+
+
+
+/* =========================
+   التحقق من الإجابة
+========================= */
+
+function checkAnswer(
+  button,
+  selected,
+  item
+) {
+
+
+  const buttons =
+    document.querySelectorAll(
+      ".answer"
+    );
+
+
+  buttons.forEach(
+    b => {
+      b.disabled = true;
+    }
+  );
+
+
+  if (
+    selected === item.correct
+  ) {
+
+
+    button.classList.add(
+      "correct"
+    );
+
+
+    feedbackEl.textContent =
+      "✅ إجابة صحيحة! +" +
+      levelPoints +
+      " نقطة";
+
+
+    score += levelPoints;
+
+
+    scoreEl.textContent =
+      score;
+
+
+  } else {
+
+
+    button.classList.add(
+      "wrong"
+    );
+
+
+    buttons[item.correct]
+      .classList.add(
+        "correct"
+      );
+
+
+    feedbackEl.textContent =
+      "❌ إجابة غير صحيحة. " +
+      item.explanation;
+
+  }
+
+
+  nextBtn.classList.remove(
+    "hidden"
+  );
+
+}
+
+
+
+/* =========================
+   السؤال التالي
+========================= */
+
+nextBtn.addEventListener(
+  "click",
+  () => {
+
+
+    currentQuestion++;
+
+
+    if (
+      currentQuestion >=
+      questions[currentLevel].length
+    ) {
+
+
+      showCertificate();
+
+
+    } else {
+
+
+      loadQuestion();
+
+    }
+
+  }
+);
+
+
+
+/* =========================
+   إظهار الشهادة
+========================= */
+
+function showCertificate() {
+
+
+  const max =
+    questions[currentLevel].length *
+    levelPoints;
+
+
+  /* اسم الطالبة */
+
+  certificateStudentName
+    .textContent = studentName;
+
+
+  /* الصف */
+
+  certificateStudentClass
+    .textContent = studentClass;
+
+
+  /* اسم الشهادة */
+
+  certificateTitle
+    .textContent =
+      certificateTitles[
+        currentLevel
+      ];
+
+
+  /* اسم المستوى */
+
+  certificateLevel
+    .textContent =
+      certificateNames[
+        currentLevel
+      ];
+
+
+  /* الدرجة */
+
+  certificateScore
+    .textContent =
+      `النتيجة: ${score} من ${max} نقطة`;
+
+
+  /* الانتقال للشهادة */
+
+  showScreen(
+    "certificateScreen"
+  );
+
+}
+
+
+
+/* =========================
+   طباعة الشهادة
+========================= */
+
+printCertificateBtn.addEventListener(
+  "click",
+  () => {
+
+    window.print();
+
+  }
+);
+
+
+
+/* =========================
+   العودة لاختيار مستوى
+========================= */
+
+certificateBackBtn.addEventListener(
+  "click",
+  () => {
+
+
+    levelScoreEl.textContent =
+      score;
+
+
+    showScreen(
+      "levelScreen"
+    );
+
+  }
+);
+
+
+</script>
+
+</body>
+</html>
